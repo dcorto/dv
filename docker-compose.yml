@@ -1,0 +1,38 @@
+# This docker-compose.yml is for devel environment only.
+version: '3.4'
+
+services:
+  database:
+    image: mongo
+    command: --smallfiles
+    ports:
+      - "27017:27017"
+
+  nginx:
+    build:
+      context: devops/docker/nginx
+      target: devel
+    image: dcc-nginx:devel
+    volumes:
+      - "./src:/var/www"
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+    links:
+      - php:php
+
+  php:
+    build:
+      context: devops/docker/php
+      dockerfile: Dockerfile
+      target: devel
+    image: dcc-php:devel
+    volumes:
+      - "./:/var/www"
+    depends_on:
+      - database
+    links:
+      - database:database
+    environment:
+      XDEBUG_CONFIG: remote_host=172.10.0.1 remote_enable=1 remote_autostart=1 remote_log=/tmp/xdebug.log

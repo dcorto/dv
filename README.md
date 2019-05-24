@@ -102,6 +102,9 @@ Response:
     "message": ""
 }
 
+
+** Check /var/log/dev.log for see the Order Status Event fired. ( app.INFO: Order status updated [] [] )
+
 ```
 
 ## TODO

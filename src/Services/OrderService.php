@@ -5,17 +5,23 @@ namespace App\Services;
 use App\Document\Order;
 use App\Document\OrderLine;
 use App\DTO\OrderDTO;
+use App\Events\OrderEvent;
+use App\Listeners\OrderStatusListener;
 use App\Repository\RateRepository;
 use App\VO\OrderStatusVO;
 use Doctrine\ODM\MongoDB\DocumentManager as DocumentManager;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class OrderService {
 
     private $dm;
+    private $logger;
 
-    public function __construct(DocumentManager $dm)
+    public function __construct(DocumentManager $dm, LoggerInterface $logger)
     {
         $this->dm = $dm;
+        $this->logger = $logger;
     }
 
     public function get($orderId)
@@ -79,6 +85,17 @@ class OrderService {
             //TODO: move to repository
             $this->dm->persist($items[0]);
             $this->dm->flush();
+
+            // init event dispatcher
+            $dispatcher = new EventDispatcher();
+
+            // register listener for the 'order.event' event
+            $listener = new OrderStatusListener($this->logger);
+            $dispatcher->addListener('order.event', array($listener, 'onStatusChangeEvent'));
+
+            // dispatch
+            $dispatcher->dispatch(OrderEvent::NAME, new OrderEvent());
+
             return true;
         }
         catch(\Exception $e){

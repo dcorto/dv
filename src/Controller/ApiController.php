@@ -25,44 +25,10 @@ use Doctrine\ODM\MongoDB\DocumentManager as DocumentManager;
 class ApiController extends AbstractController
 {
     protected $orderService;
-    private $dm;
 
-    public function __construct(OrderService $orderService, DocumentManager $dm)
+    public function __construct(OrderService $orderService)
     {
         $this->orderService = $orderService;
-        $this->dm = $dm;
-    }
-
-    /**
-     * @Route("/wtf", methods={"GET"}, name="wtf")
-     * @return Response
-     */
-    public function wtf(): Response
-    {
-
-
-
-
-        $line = new OrderLine();
-        $line->setPrice(1);
-        $line->setSku("WTF");
-        $line->setQuantity(1);
-
-        $order = new Order();
-        $order->setStatus(new OrderStatusVO(OrderStatusEnum::PENDING_CONFIRMATION));
-        $order->setAmount(rand(1,1000));
-        $order->addLine($line);
-
-
-        $this->dm->persist($order);
-        $this->dm->flush();
-
-        return new JsonResponse(
-            [
-                'status' => 'ok',
-            ],
-            JsonResponse::HTTP_OK
-        );
     }
 
     /**
